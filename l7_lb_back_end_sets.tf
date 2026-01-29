@@ -4,57 +4,60 @@
 # #######################################################################################################
 
 locals {
-  one_dimension_processed_l7_lb_backend_sets = local.one_dimension_processed_l7_load_balancers != null
-    ? length(local.one_dimension_processed_l7_load_balancers) > 0
-      ? {
-          for flat_backend_set in flatten([
-            for l7lb_key, l7lb_value in local.one_dimension_processed_l7_load_balancers :
-              l7lb_value.backend_sets != null ? length(l7lb_value.backend_sets) > 0
-                ? [
-                    for l7lb_be_key, l7lb_be_value in l7lb_value.backend_sets : {
-                      health_checker                       = l7lb_be_value.health_checker
-                      load_balancer_id                     = local.provisioned_l7_lbs[l7lb_key].id
-                      name                                 = l7lb_be_value.name
-                      policy                               = l7lb_be_value.policy
-                      lb_cookie_session_persistence_configuration = l7lb_be_value.lb_cookie_session_persistence_configuration
-                      session_persistence_configuration     = l7lb_be_value.session_persistence_configuration
-                      ssl_configuration                    = l7lb_be_value.ssl_configuration
-                      backends                             = l7lb_be_value.backends
-                      l7lb_be_key                          = l7lb_be_key
-                      l7lb_name                            = l7lb_value.display_name
-                      l7lb_id                              = local.provisioned_l7_lbs[l7lb_key].id
-                      l7lb_key                             = l7lb_key
-                      network_configuration_category       = l7lb_value.network_configuration_category
-                    }
-                  ]
-                : []
-              : []
-          ])
-          : flat_backend_set.l7lb_be_key => flat_backend_set
+  one_dimension_processed_l7_lb_backend_sets = (
+    local.one_dimension_processed_l7_load_balancers != null
+    ? (
+    length(local.one_dimension_processed_l7_load_balancers) > 0
+    ? {
+    for flat_backend_set in flatten([
+      for l7lb_key, l7lb_value in local.one_dimension_processed_l7_load_balancers :
+      l7lb_value.backend_sets != null && length(l7lb_value.backend_sets) > 0
+      ? [
+        for l7lb_be_key, l7lb_be_value in l7lb_value.backend_sets : {
+          health_checker                            = l7lb_be_value.health_checker
+          load_balancer_id                          = local.provisioned_l7_lbs[l7lb_key].id
+          name                                      = l7lb_be_value.name
+          policy                                    = l7lb_be_value.policy
+          lb_cookie_session_persistence_configuration = l7lb_be_value.lb_cookie_session_persistence_configuration
+          session_persistence_configuration          = l7lb_be_value.session_persistence_configuration
+          ssl_configuration                         = l7lb_be_value.ssl_configuration
+          backends                                  = l7lb_be_value.backends
+          l7lb_be_key                               = l7lb_be_key
+          l7lb_name                                 = l7lb_value.display_name
+          l7lb_id                                   = local.provisioned_l7_lbs[l7lb_key].id
+          l7lb_key                                  = l7lb_key
+          network_configuration_category            = l7lb_value.network_configuration_category
         }
-      : null
+      ]
+      : []
+      ])
+    : flat_backend_set.l7lb_be_key => flat_backend_set
+  }
     : null
+  )
+    : null
+  )
 
   provisioned_l7_lbs_backend_sets = {
     for l7lb_be_key, l7lb_be_value in oci_load_balancer_backend_set.these :
-      l7lb_be_key => {
-        backend                             = l7lb_be_value.backend
-        health_checker                      = l7lb_be_value.health_checker
-        id                                  = l7lb_be_value.id
-        lb_cookie_session_persistence_configuration = l7lb_be_value.lb_cookie_session_persistence_configuration
-        load_balancer_id                    = l7lb_be_value.load_balancer_id
-        name                                = l7lb_be_value.name
-        policy                              = l7lb_be_value.policy
-        session_persistence_configuration   = l7lb_be_value.session_persistence_configuration
-        ssl_configuration                   = l7lb_be_value.ssl_configuration
-        state                               = l7lb_be_value.state
-        timeouts                            = l7lb_be_value.timeouts
-        l7lb_backendset_key                 = l7lb_be_key
-        l7lb_name                           = local.one_dimension_processed_l7_lb_backend_sets[l7lb_be_key].l7lb_name
-        l7lb_id                             = local.one_dimension_processed_l7_lb_backend_sets[l7lb_be_key].l7lb_id
-        l7lb_key                            = local.one_dimension_processed_l7_lb_backend_sets[l7lb_be_key].l7lb_key
-        network_configuration_category      = local.one_dimension_processed_l7_lb_backend_sets[l7lb_be_key].network_configuration_category
-      }
+    l7lb_be_key => {
+      backend                        = l7lb_be_value.backend
+      health_checker                 = l7lb_be_value.health_checker
+      id                             = l7lb_be_value.id
+      lb_cookie_session_persistence_configuration = l7lb_be_value.lb_cookie_session_persistence_configuration
+      load_balancer_id               = l7lb_be_value.load_balancer_id
+      name                           = l7lb_be_value.name
+      policy                         = l7lb_be_value.policy
+      session_persistence_configuration = l7lb_be_value.session_persistence_configuration
+      ssl_configuration              = l7lb_be_value.ssl_configuration
+      state                          = l7lb_be_value.state
+      timeouts                       = l7lb_be_value.timeouts
+      l7lb_backendset_key            = l7lb_be_key
+      l7lb_name                      = local.one_dimension_processed_l7_lb_backend_sets[l7lb_be_key].l7lb_name
+      l7lb_id                        = local.one_dimension_processed_l7_lb_backend_sets[l7lb_be_key].l7lb_id
+      l7lb_key                       = local.one_dimension_processed_l7_lb_backend_sets[l7lb_be_key].l7lb_key
+      network_configuration_category = local.one_dimension_processed_l7_lb_backend_sets[l7lb_be_key].network_configuration_category
+    }
   }
 }
 
